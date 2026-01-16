@@ -6,9 +6,13 @@ const cardRoutes = require("./routes/card.routes");
 
 const app = express();
 app.use(cors({
-  origin: "http://localhost:5175",
+  origin: [
+    "https://scaler-ai-labs-assignment.netlify.app",
+    "http://localhost:5175"
+  ],
   credentials: true
 }));
+
 
 app.use(express.json());
 app.use("/board", boardRoutes);
