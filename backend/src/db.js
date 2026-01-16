@@ -1,11 +1,7 @@
-const { Pool } = require("pg");
+import pkg from "pg";
+const { Pool } = pkg;
 
-const pool = new Pool({
-  user: "postgres",
-  host: "localhost",
-  database: "trello_db",
-  password: "#wqSA!52apP!Z2s#",
-  port: 5432,
+export const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
 });
-
-module.exports = pool;
