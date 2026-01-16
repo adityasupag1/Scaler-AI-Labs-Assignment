@@ -1,0 +1,33 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+}
+
+.board {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  overflow-x: auto;
+}
+
+.list {
+  background: #f4f5f7;
+  min-width: 280px;
+  padding: 10px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.card {
+  background: white;
+  padding: 10px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .list {
+    min-width: 240px;
+  }
+}
