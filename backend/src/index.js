@@ -7,7 +7,7 @@ const cardRoutes = require("./routes/card.routes");
 const app = express();
 app.use(cors({
   origin: [
-    "https://scaler-ai-labs-assignment.vercel.app/",
+    "https://scaler-ai-labs-assignment.vercel.app",
     "http://localhost:5175"
   ],
   credentials: true
