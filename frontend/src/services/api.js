@@ -1,7 +1,9 @@
-const API_URL =
-  window.location.hostname === "localhost"
-    ? "http://localhost:5000"
-    : "https://scaler-ai-labs-assignment-eh5l.vercel.app";
+export const getBoard = async () => {
+  const res = await fetch("/api/board");
 
-export const getBoard = async () =>
-  (await fetch(`${API_URL}/board`, { credentials: "include" })).json();
+  if (!res.ok) {
+    throw new Error("Failed to fetch boards");
+  }
+
+  return res.json();
+};
