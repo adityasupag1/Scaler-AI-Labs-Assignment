@@ -9,6 +9,7 @@ import { updateCardOrder } from "../services/cardService";
 export default function Board() {
   const [lists, setLists] = useState([]);
   const [loading, setLoading] = useState(true);
+  const BOARD_ID = "1689f918-3823-4e87-8522-4bed14dc8c27"; // from Supabase
 
   // =========================
   // Update card in UI after modal save
@@ -27,17 +28,16 @@ export default function Board() {
   // =========================
   // Add new list (DB + UI)
   // =========================
-  async function addList() {
-    if (lists.length === 0) return;
+async function addList() {
+  const newList = await createList({
+    title: "New List",
+    board_id: BOARD_ID,
+    order_index: lists.length
+  });
 
-    const newList = await createList({
-      title: "New List",
-      board_id: lists[0].board_id,
-      order_index: lists.length
-    });
+  setLists((prev) => [...prev, { ...newList, cards: [] }]);
+}
 
-    setLists((prev) => [...prev, { ...newList, cards: [] }]);
-  }
 
   // =========================
   // Load board from Supabase
@@ -155,7 +155,7 @@ export default function Board() {
           <div
             ref={provided.innerRef}
             {...provided.droppableProps}
-            className="flex gap-4 overflow-x-auto pb-6"
+            className="flex gap-4 overflow-x-auto pb-6 flex-wrap justify-center"
           >
             {lists.map((list, index) => (
               <List
