@@ -40,6 +40,8 @@ export async function updateListTitle(listId, title) {
 /**
  * Delete a list
  */
+ 
+
 export async function deleteList(listId) {
   const { error } = await supabase
     .from("lists")
