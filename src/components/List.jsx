@@ -90,7 +90,7 @@ export default function List({ list, index, lists, setLists, onCardUpdate }) {
 				<div
 					ref={provided.innerRef}
 					{...provided.draggableProps}
-					className="bg-white/80 rounded-xl p-3 w-72 shadow-md"
+					className="bg-white/80 rounded-xl p-3 w-72 shadow-md "
 				>
 					{/* Header */}
 					<div
