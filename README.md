@@ -1,7 +1,7 @@
 # Trello Clone – Full Stack Assignment (Scaler)
 
-A Trello-like task management board built using **React**, **Tailwind CSS**, and **Supabase (PostgreSQL)**.
-The application supports full CRUD operations, drag-and-drop for lists and cards, and persistent storage.
+A Trello-inspired task management application built using **React**, **Tailwind CSS**, and **Supabase (PostgreSQL)**.  
+The project demonstrates full-stack development skills including CRUD operations, drag-and-drop interactions, persistent storage, and clean component architecture.
 
 ---
 
@@ -10,42 +10,51 @@ The application supports full CRUD operations, drag-and-drop for lists and cards
 ### Board & Lists
 - Create new lists
 - Rename list titles
-- Delete lists (with cascading card deletion)
-- Drag & drop lists (order persists after refresh)
+- Delete lists (cards are deleted via cascade)
+- Drag & drop lists with persistent ordering
 
 ### Cards
 - Create cards inside lists
-- Edit card details via modal
+- Edit card title and description via modal
+- Add **due dates** to cards
+- Add and remove **colored labels**
 - Delete cards
 - Drag & drop cards within and across lists
 - Card order persists after refresh
 
+### Search
+- Search cards by title
+- Case-insensitive search
+- Only lists containing matching cards are shown during search
+
 ### Persistence
 - All data stored in **Supabase (PostgreSQL)**
-- Uses `order_index` to maintain list and card ordering
-- Data remains consistent after page refresh
+- Uses `order_index` to maintain list and card order
+- State is fully restored after page refresh
 
 ---
 
 ## 🛠 Tech Stack
 
-**Frontend**
+### Frontend
 - React
 - Tailwind CSS
-- @hello-pangea/dnd
+- @hello-pangea/dnd (Drag & Drop)
 
-**Backend**
+### Backend
 - Supabase
 - PostgreSQL
 
-**Architecture**
+### Architecture
 - Component-based UI
 - Service layer for database operations
-- Clean separation of concerns (UI vs DB logic)
+- Clear separation between UI logic and persistence logic
+- Derived state for search and filtering
 
 ---
 
 ## 📂 Project Structure
+
 
 ```
 trello-clone/
@@ -91,20 +100,20 @@ trello-clone/
    - `lists`
    - `cards`
 3. Enable **Row Level Security (RLS)**
-4. Add policies for SELECT, INSERT, UPDATE, DELETE
+4. Add policies for:
+   - SELECT
+   - INSERT
+   - UPDATE
+   - DELETE
 
-Example (for assignment/demo):
+Example policy (for assignment/demo):
 
 ```sql
-CREATE POLICY "Allow all"
+CREATE POLICY "Allow all operations"
 ON lists
 FOR ALL
 USING (true)
 WITH CHECK (true);
-```
-
-(Similar policies applied to `cards`)
-
 ---
 
 ## 🔑 Environment Variables
