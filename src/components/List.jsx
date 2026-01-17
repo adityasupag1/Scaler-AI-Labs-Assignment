@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Draggable, Droppable } from "@hello-pangea/dnd";
 import Card from "./Card";
+import { updateListTitle } from "../services/listService";
 
 import {
   createCard,
@@ -15,13 +16,19 @@ export default function List({ list, index, lists, setLists, onCardUpdate }) {
   // =========================
   // Save list title (UI only)
   // =========================
-  function saveTitle() {
-    const updated = lists.map((l) =>
-      l.id === list.id ? { ...l, title } : l
-    );
-    setLists(updated);
-    setEditing(false);
-  }
+async function saveTitle() {
+  // 1. Save to Supabase
+  await updateListTitle(list.id, title);
+
+  // 2. Update React state
+  const updatedLists = lists.map((l) =>
+    l.id === list.id ? { ...l, title } : l
+  );
+
+  setLists(updatedLists);
+  setEditing(false);
+}
+
 
   // =========================
   // ADD CARD (DB + UI)
