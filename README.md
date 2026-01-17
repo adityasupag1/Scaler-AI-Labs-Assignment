@@ -100,8 +100,11 @@ trello-clone/
    - `lists`
    - `cards`
 3. Enable **Row Level Security (RLS)**
-4. Add policies for SELECT, INSERT, UPDATE, DELETE
-
+4. Add policies for:
+   - SELECT
+   - INSERT
+   - UPDATE
+   - DELETE
 Example (for assignment/demo):
 
 ```sql
