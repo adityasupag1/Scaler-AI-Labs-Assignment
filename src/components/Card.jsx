@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Draggable } from "@hello-pangea/dnd";
 import CardModal from "./CardModal";
+import { MdOutlineDeleteForever } from "react-icons/md";
 
 export default function Card({ card, index, onDelete, onUpdate }) {
   const [open, setOpen] = useState(false);
@@ -42,9 +43,9 @@ export default function Card({ card, index, onDelete, onUpdate }) {
 
               <button
                 onClick={onDelete}
-                className="text-xs text-slate-400 hover:text-red-600"
+                className="text-xs text-red-500  hover:text-red-600 cursor-pointer"
               >
-                🗑
+               <MdOutlineDeleteForever className="w-5  h-5" />
               </button>
             </div>
           </div>
