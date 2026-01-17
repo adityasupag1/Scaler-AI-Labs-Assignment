@@ -5,6 +5,23 @@ import CardModal from "./CardModal";
 export default function Card({ card, index, onDelete, onUpdate }) {
   const [open, setOpen] = useState(false);
 
+  async function handleDeleteCard(cardId) {
+  // 1. Delete from database
+  await deleteCard(cardId);
+
+  // 2. Update UI state
+  const updatedLists = lists.map((l) =>
+    l.id === list.id
+      ? {
+          ...l,
+          cards: l.cards.filter((c) => c.id !== cardId)
+        }
+      : l
+  );
+
+  setLists(updatedLists);
+}
+
   return (
     <>
       <Draggable draggableId={card.id} index={index}>
