@@ -1,6 +1,11 @@
 import { useState } from "react";
 import { Draggable, Droppable } from "@hello-pangea/dnd";
 import Card from "./Card";
+import {
+	createCard,
+	deleteCard as deleteCardFromDB,
+} from "../services/cardService";
+import { deleteList } from "../services/listService";
 
 export default function List({ list, index, lists, setLists, onCardUpdate }) {
 	const [editing, setEditing] = useState(false);
@@ -14,19 +19,54 @@ export default function List({ list, index, lists, setLists, onCardUpdate }) {
 		setEditing(false);
 	}
 
-	function addCard() {
-		const newCard = {
-			id: `card-${Date.now()}`,
-			title: "New Card",
-		};
+	async function handleDeleteCard(cardId) {
+		// 1. Delete from database
+		await deleteCard(cardId);
 
-		const updated = lists.map((l) =>
+		// 2. Update UI state
+		const updatedLists = lists.map((l) =>
+			l.id === list.id
+				? {
+						...l,
+						cards: l.cards.filter(
+							(c) => c.id !== cardId,
+						),
+					}
+				: l,
+		);
+
+		setLists(updatedLists);
+	}
+
+	async function handleDeleteList() {
+		const confirmDelete = confirm(
+			"Delete this list and all its cards?",
+		);
+		if (!confirmDelete) return;
+
+		// 1. Delete from Supabase
+		await deleteList(list.id);
+
+		// 2. Update UI state
+		const updatedLists = lists.filter((l) => l.id !== list.id);
+
+		setLists(updatedLists);
+	}
+
+	async function addCard() {
+		const newCard = await createCard({
+			title: "New Card",
+			list_id: list.id,
+			order_index: list.cards.length,
+		});
+
+		const updatedLists = lists.map((l) =>
 			l.id === list.id
 				? { ...l, cards: [...l.cards, newCard] }
 				: l,
 		);
 
-		setLists(updated);
+		setLists(updatedLists);
 	}
 
 	function deleteCard(cardId) {
@@ -98,12 +138,11 @@ export default function List({ list, index, lists, setLists, onCardUpdate }) {
 						)}
 
 						<button
-							onClick={() =>
-								onDelete(
-									list.id,
-								)
+							onClick={
+								handleDeleteList
 							}
 							className="text-slate-500 hover:text-red-600 ml-2"
+							title="Delete list"
 						>
 							✕
 						</button>
