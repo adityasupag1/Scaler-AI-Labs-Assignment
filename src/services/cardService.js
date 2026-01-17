@@ -13,6 +13,7 @@ export async function updateCard(cardId, updates) {
   }
 }
 
+
 export async function updateCardOrder(cardId, list_id, order_index) {
   const { error } = await supabase
     .from("cards")
