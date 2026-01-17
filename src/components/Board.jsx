@@ -9,7 +9,9 @@ import { updateCardOrder } from "../services/cardService";
 export default function Board() {
   const [lists, setLists] = useState([]);
   const [loading, setLoading] = useState(true);
-  const BOARD_ID = "1689f918-3823-4e87-8522-4bed14dc8c27"; // from Supabase
+  const [search, setSearch] = useState("");
+
+  const BOARD_ID = "1689f918-3823-4e87-8522-4bed14dc8c27"; // Supabase board id
 
   // =========================
   // Update card in UI after modal save
@@ -28,16 +30,15 @@ export default function Board() {
   // =========================
   // Add new list (DB + UI)
   // =========================
-async function addList() {
-  const newList = await createList({
-    title: "New List",
-    board_id: BOARD_ID,
-    order_index: lists.length
-  });
+  async function addList() {
+    const newList = await createList({
+      title: "New List",
+      board_id: BOARD_ID,
+      order_index: lists.length
+    });
 
-  setLists((prev) => [...prev, { ...newList, cards: [] }]);
-}
-
+    setLists((prev) => [...prev, { ...newList, cards: [] }]);
+  }
 
   // =========================
   // Load board from Supabase
@@ -57,7 +58,25 @@ async function addList() {
   }
 
   // =========================
-  // DRAG & DROP (FINAL)
+  // SEARCH (DERIVED STATE)
+  // =========================
+  const filteredLists =
+  search.trim() === ""
+    ? lists
+    : lists
+        .map((list) => ({
+          ...list,
+          cards: list.cards.filter((card) =>
+            card.title
+              .toLowerCase()
+              .includes(search.toLowerCase())
+          )
+        }))
+        .filter((list) => list.cards.length > 0);
+
+
+  // =========================
+  // DRAG & DROP
   // =========================
   async function onDragEnd(result) {
     const { source, destination, type } = result;
@@ -69,10 +88,8 @@ async function addList() {
       const [moved] = reordered.splice(source.index, 1);
       reordered.splice(destination.index, 0, moved);
 
-      // UI update
       setLists(reordered);
 
-      // DB update
       await Promise.all(
         reordered.map((list, index) =>
           updateListOrder(list.id, index)
@@ -145,48 +162,68 @@ async function addList() {
   // RENDER
   // =========================
   return (
-    <DragDropContext onDragEnd={onDragEnd}>
-      <Droppable
-        droppableId="board"
-        direction="horizontal"
-        type="LIST"
-      >
-        {(provided) => (
-          <div
-            ref={provided.innerRef}
-            {...provided.droppableProps}
-            className="flex gap-4 overflow-x-auto pb-6 flex-wrap justify-center"
-          >
-            {lists.map((list, index) => (
-              <List
-                key={list.id}
-                list={list}
-                index={index}
-                lists={lists}
-                setLists={setLists}
-                onCardUpdate={updateCardInBoard}
-              />
-            ))}
+    <div>
+      {/* Search Bar */}
+     <div className="mb-6 flex justify-center">
+  <input
+    type="text"
+    placeholder="Search cards..."
+    value={search}
+    onChange={(e) => setSearch(e.target.value)}
+    className="
+      w-full max-w-md
+      px-4 py-2
+      border rounded-lg
+      outline-none
+      focus:ring-2 focus:ring-slate-300
+    "
+  />
+</div>
 
-            {provided.placeholder}
 
-            {/* Add List Button */}
-            <button
-              onClick={addList}
-              className="
-                w-72 min-h-[40px]
-                rounded-xl bg-white/70
-                hover:bg-white
-                text-left px-4 py-3
-                font-medium text-slate-700
-                shadow-sm
-              "
+      <DragDropContext onDragEnd={onDragEnd}>
+        <Droppable
+          droppableId="board"
+          direction="horizontal"
+          type="LIST"
+        >
+          {(provided) => (
+            <div
+              ref={provided.innerRef}
+              {...provided.droppableProps}
+              className="flex gap-4 overflow-x-auto pb-6 flex-wrap justify-center"
             >
-              + Add another list
-            </button>
-          </div>
-        )}
-      </Droppable>
-    </DragDropContext>
+              {filteredLists.map((list, index) => (
+                <List
+                  key={list.id}
+                  list={list}
+                  index={index}
+                  lists={lists}
+                  setLists={setLists}
+                  onCardUpdate={updateCardInBoard}
+                />
+              ))}
+
+              {provided.placeholder}
+
+              {/* Add List Button */}
+              <button
+                onClick={addList}
+                className="
+                  w-72 min-h-[40px]
+                  rounded-xl bg-white/70
+                  hover:bg-white
+                  text-left px-4 py-3
+                  font-medium text-slate-700
+                  shadow-sm
+                "
+              >
+                + Add another list
+              </button>
+            </div>
+          )}
+        </Droppable>
+      </DragDropContext>
+    </div>
   );
 }
