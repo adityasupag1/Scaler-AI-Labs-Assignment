@@ -6,28 +6,28 @@ export async function fetchListsWithCards() {
     .select(`
       id,
       title,
-      order_index,
       board_id,
+      order_index,
       cards (
         id,
         title,
         description,
+        due_date,
+        labels,
         order_index,
         list_id
       )
     `)
     .order("order_index", { ascending: true })
-    .order("order_index", { foreignTable: "cards", ascending: true });
+    .order("order_index", {
+      foreignTable: "cards",
+      ascending: true
+    });
 
   if (error) {
-    console.error(error);
-    return [];
+    console.error("Fetch board error:", error);
+    throw error;
   }
 
-  // 🔥 NORMALIZE cards
-  return data.map((list) => ({
-    ...list,
-    cards: list.cards ?? []   // <<< THIS FIXES DRAG
-  }));
+  return data;
 }
-
