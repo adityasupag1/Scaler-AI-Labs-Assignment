@@ -2,38 +2,44 @@ import { useState } from "react";
 import { Draggable } from "@hello-pangea/dnd";
 import CardModal from "./CardModal";
 
-export default function Card({ card, index }) {
+export default function Card({ card, index, onDelete, onUpdate }) {
   const [open, setOpen] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
 
   return (
     <>
       <Draggable draggableId={card.id} index={index}>
-        {(provided, snapshot) => (
+        {(provided) => (
           <div
             ref={provided.innerRef}
             {...provided.draggableProps}
             {...provided.dragHandleProps}
-            onMouseDown={() => setIsDragging(false)}
-            onMouseMove={() => setIsDragging(true)}
-            onMouseUp={() => {
-              if (!isDragging) setOpen(true);
-            }}
-            className={`
-              bg-white rounded-lg p-3
-              border border-slate-200
-              cursor-pointer
-              transition-all duration-200
-              ${snapshot.isDragging ? "shadow-lg rotate-1" : "shadow-sm hover:shadow-md"}
-            `}
+            className="bg-white rounded-lg p-3 shadow-sm hover:shadow-md"
           >
-            <p className="text-sm font-medium">{card.title}</p>
+            <div className="flex justify-between items-center">
+              <p
+                className="text-sm font-medium cursor-pointer"
+                onClick={() => setOpen(true)}
+              >
+                {card.title}
+              </p>
+
+              <button
+                onClick={onDelete}
+                className="text-xs text-slate-400 hover:text-red-600"
+              >
+                🗑
+              </button>
+            </div>
           </div>
         )}
       </Draggable>
 
       {open && (
-        <CardModal card={card} onClose={() => setOpen(false)} />
+        <CardModal
+          card={card}
+          onClose={() => setOpen(false)}
+          onUpdate={onUpdate}
+        />
       )}
     </>
   );
