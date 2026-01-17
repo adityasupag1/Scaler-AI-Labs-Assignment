@@ -24,3 +24,36 @@ export async function updateCardOrder(cardId, list_id, order_index) {
     throw error;
   }
 }
+
+
+
+export async function deleteCard(cardId) {
+  const { error } = await supabase
+    .from("cards")
+    .delete()
+    .eq("id", cardId);
+
+  if (error) {
+    console.error("Delete card error:", error);
+    throw error;
+  }
+}
+
+export async function createCard({ title, list_id, order_index }) {
+  const { data, error } = await supabase
+    .from("cards")
+    .insert({
+      title,
+      list_id,
+      order_index
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error("Create card error:", error);
+    throw error;
+  }
+
+  return data;
+}
