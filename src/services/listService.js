@@ -36,7 +36,6 @@ export async function updateListTitle(listId, title) {
     throw error;
   }
 }
-
 /**
  * Delete a list
  */
