@@ -1,73 +1,156 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { DragDropContext, Droppable } from "@hello-pangea/dnd";
 import List from "./List";
-import AddButton from "./AddButton";
-import { reorder } from "../utils/dragUtils";
+
+import { fetchListsWithCards } from "../services/boardService";
+import { createList, updateListOrder } from "../services/listService";
+import { updateCardOrder } from "../services/cardService";
 
 export default function Board() {
-  const [lists, setLists] = useState([
-    {
-      id: "list-1",
-      title: "Todo",
-      cards: []
-    },
-    {
-      id: "list-2",
-      title: "Doing",
-      cards: []
-    }
-  ]);
+  const [lists, setLists] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  function addList() {
-    const newList = {
-      id: `list-${Date.now()}`,
+  // =========================
+  // Update card in UI after modal save
+  // =========================
+  function updateCardInBoard(updatedCard) {
+    setLists((prevLists) =>
+      prevLists.map((list) => ({
+        ...list,
+        cards: list.cards.map((card) =>
+          card.id === updatedCard.id ? updatedCard : card
+        )
+      }))
+    );
+  }
+
+  // =========================
+  // Add new list (DB + UI)
+  // =========================
+  async function addList() {
+    if (lists.length === 0) return;
+
+    const newList = await createList({
       title: "New List",
-      cards: []
-    };
-    setLists([...lists, newList]);
+      board_id: lists[0].board_id,
+      order_index: lists.length
+    });
+
+    setLists((prev) => [...prev, { ...newList, cards: [] }]);
   }
 
-  function deleteList(listId) {
-    setLists(lists.filter((l) => l.id !== listId));
+  // =========================
+  // Load board from Supabase
+  // =========================
+  useEffect(() => {
+    async function loadData() {
+      const data = await fetchListsWithCards();
+      setLists(data);
+      setLoading(false);
+    }
+
+    loadData();
+  }, []);
+
+  if (loading) {
+    return <p className="text-slate-600">Loading board...</p>;
   }
 
-  function onDragEnd(result) {
+  // =========================
+  // DRAG & DROP (FINAL)
+  // =========================
+  async function onDragEnd(result) {
     const { source, destination, type } = result;
     if (!destination) return;
 
+    // ---------- LIST DRAG ----------
     if (type === "LIST") {
-      setLists(reorder(lists, source.index, destination.index));
+      const reordered = Array.from(lists);
+      const [moved] = reordered.splice(source.index, 1);
+      reordered.splice(destination.index, 0, moved);
+
+      // UI update
+      setLists(reordered);
+
+      // DB update
+      await Promise.all(
+        reordered.map((list, index) =>
+          updateListOrder(list.id, index)
+        )
+      );
       return;
     }
 
-    const sourceIndex = lists.findIndex(l => l.id === source.droppableId);
-    const destIndex = lists.findIndex(l => l.id === destination.droppableId);
+    // ---------- CARD DRAG ----------
+    const sourceListIndex = lists.findIndex(
+      (l) => l.id === source.droppableId
+    );
+    const destListIndex = lists.findIndex(
+      (l) => l.id === destination.droppableId
+    );
 
-    const sourceList = lists[sourceIndex];
-    const destList = lists[destIndex];
+    const sourceList = lists[sourceListIndex];
+    const destList = lists[destListIndex];
 
-    const sourceCards = Array.from(sourceList.cards);
-    const [moved] = sourceCards.splice(source.index, 1);
+    const sourceCards = [...sourceList.cards];
+    const [movedCard] = sourceCards.splice(source.index, 1);
 
-    if (sourceIndex === destIndex) {
-      sourceCards.splice(destination.index, 0, moved);
-      const updated = [...lists];
-      updated[sourceIndex] = { ...sourceList, cards: sourceCards };
-      setLists(updated);
-    } else {
-      const destCards = Array.from(destList.cards);
-      destCards.splice(destination.index, 0, moved);
+    // Same list reorder
+    if (sourceListIndex === destListIndex) {
+      sourceCards.splice(destination.index, 0, movedCard);
 
-      const updated = [...lists];
-      updated[sourceIndex] = { ...sourceList, cards: sourceCards };
-      updated[destIndex] = { ...destList, cards: destCards };
-      setLists(updated);
+      const updatedLists = [...lists];
+      updatedLists[sourceListIndex] = {
+        ...sourceList,
+        cards: sourceCards
+      };
+
+      setLists(updatedLists);
+
+      await Promise.all(
+        sourceCards.map((card, index) =>
+          updateCardOrder(card.id, sourceList.id, index)
+        )
+      );
+    }
+    // Move to another list
+    else {
+      const destCards = [...destList.cards];
+      destCards.splice(destination.index, 0, movedCard);
+
+      const updatedLists = [...lists];
+      updatedLists[sourceListIndex] = {
+        ...sourceList,
+        cards: sourceCards
+      };
+      updatedLists[destListIndex] = {
+        ...destList,
+        cards: destCards
+      };
+
+      setLists(updatedLists);
+
+      await Promise.all([
+        ...sourceCards.map((card, index) =>
+          updateCardOrder(card.id, sourceList.id, index)
+        ),
+        ...destCards.map((card, index) =>
+          updateCardOrder(card.id, destList.id, index)
+        )
+      ]);
     }
   }
 
+  // =========================
+  // RENDER
+  // =========================
   return (
     <DragDropContext onDragEnd={onDragEnd}>
-      <Droppable droppableId="board" direction="horizontal" type="LIST">
+      <Droppable
+        droppableId="board"
+        direction="horizontal"
+        type="LIST"
+      >
         {(provided) => (
           <div
             ref={provided.innerRef}
@@ -79,18 +162,27 @@ export default function Board() {
                 key={list.id}
                 list={list}
                 index={index}
-                onDelete={deleteList}
-                setLists={setLists}
                 lists={lists}
+                setLists={setLists}
+                onCardUpdate={updateCardInBoard}
               />
             ))}
+
             {provided.placeholder}
 
+            {/* Add List Button */}
             <button
               onClick={addList}
-              className="w-72 h-fit rounded-xl bg-white/60 hover:bg-white p-3 text-left"
+              className="
+                w-72 min-h-[40px]
+                rounded-xl bg-white/70
+                hover:bg-white
+                text-left px-4 py-3
+                font-medium text-slate-700
+                shadow-sm
+              "
             >
-              + Add List
+              + Add another list
             </button>
           </div>
         )}
